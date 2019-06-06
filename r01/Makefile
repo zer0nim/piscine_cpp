@@ -1,46 +1,68 @@
-NAME = ft_retro
+.PHONY: all re clean fclean
 
-SRCDIR = srcs
+CPP		= clang++
+FLAGS	= -std=c++98 -Wall -Werror -Wextra
+CURSE	= -lncurses
+NAME	= ft_gkrellm
 
-SRC_NAME =	main.cpp \
-			AEntity.cpp \
-			AMovable.cpp \
-			ClockTime.cpp \
-			Enemy.cpp \
-			EventManager.cpp \
-			GameManager.cpp \
-			Player.cpp \
-			View.cpp \
-			Pos.cpp \
-			Shape.cpp \
-			Bullet.cpp
+SRCDIR	= src
+INCDIR	= include
+OBJDIR	= obj
 
-OBJ_PATH = obj
+SRC		=	main.cpp				\
+			AModule.cpp				\
+			HostnameModule.cpp		\
+			TimeModule.cpp			\
+			ADisplay.cpp			\
+			TerminalDisplay.cpp		\
+			OsInfosModule.cpp		\
+			CpuModule.cpp			\
+			MemoryModule.cpp		\
+			NetworkModule.cpp		\
+			DiskModule.cpp			\
+			GraphicalDisplay.cpp	\
+			utils.cpp
 
-OBJ_NAME = $(SRC_NAME:.cpp=.o)
 
-SRC = $(SRC_NAME)
 
-OBJ = $(addprefix $(OBJ_PATH)/,$(OBJ_NAME))
+HEAD	= 	ft_gkrellm.hpp			\
+			defines.hpp				\
+			AModule.hpp				\
+			HostnameModule.hpp		\
+			TimeModule.hpp			\
+			ADisplay.hpp			\
+			TerminalDisplay.hpp		\
+			OsInfosModule.hpp		\
+			CpuModule.hpp			\
+			MemoryModule.hpp		\
+			NetworkModule.hpp		\
+			DiskModule.hpp			\
+			GraphicalDisplay.hpp	\
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+SFML	= -I ~/.brew/include
+SFMLLINK	= -L ~/.brew/lib -lsfml-system -lsfml-window -lsfml-graphics -lsfml-network -lsfml-audio -rpath ~/.brew/lib
 
-all: $(NAME)
+OBJ		= $(SRC:.cpp=.o)
 
-$(NAME): $(OBJ)
-	clang++ -o $(NAME) $(OBJ) -lncurses
+HEADP	= $(addprefix $(INCDIR)/, $(HEAD))
+OBJP	= $(addprefix $(OBJDIR)/, $(OBJ))
+INCP	= $(foreach dir, $(INCDIR), -I$(dir))
 
-$(OBJ_PATH)/%.o: $(SRCDIR)/%.cpp
-	@mkdir $(OBJ_PATH) 2> /dev/null || true
-	clang++ -c $< $(FLAGS) -I includes/ -o $@
+all: $(OBJDIR) $(NAME)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADP)
+	$(CPP) $(FLAGS) -c -o $@ $< $(INCP) $(SFML)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+re: fclean all
 
 clean:
-	rm -f $(OBJ)
-	@rmdir $(OBJ_PATH) 2> /dev/null || true
+	rm -rf $(OBJDIR)
 
 fclean: clean
 	rm -f $(NAME)
 
-re: fclean all
-
-.PHONY: all, clean, fclean, re
+$(NAME): $(OBJP)
+	$(CPP) $(FLAGS) $(CURSE) -o $@ $^ $(INCP) $(SFMLLINK)
